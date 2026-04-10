@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 700px;
+            max-width: 750px;
             margin: 0 auto;
         }
 
@@ -61,7 +61,7 @@
             backdrop-filter: blur(4px);
         }
 
-        /* أزرار التبويب */
+        /* أزرار التبويب (تبويبان فقط) */
         .tabs {
             display: flex;
             gap: 12px;
@@ -215,13 +215,16 @@
             margin-bottom: 20px;
             display: flex;
             gap: 10px;
+            align-items: center;
         }
 
-        .client-order-item {
-            background: #fef6ed;
-            border-radius: 24px;
-            padding: 12px;
-            margin-bottom: 12px;
+        /* بطاقات العملاء بألوان باستيل مختلفة */
+        .client-card {
+            border-radius: 28px;
+            padding: 16px;
+            margin-bottom: 24px;
+            transition: all 0.2s;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.03);
         }
 
         .flex-between {
@@ -237,10 +240,37 @@
             border-color: #ffe1bd;
         }
 
+        /* تحسين تخطيط الصفوف في إضافة الطلب */
+        .order-input-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+            background: rgba(255,245,235,0.7);
+            padding: 12px;
+            border-radius: 28px;
+            margin-bottom: 16px;
+        }
+        .order-item {
+            flex: 1;
+            min-width: 140px;
+        }
+        .order-item label {
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .inline-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .inline-group select, .inline-group input {
+            flex: 2;
+        }
         @media (max-width: 550px) {
             body { padding: 12px; }
             th, td { font-size: 0.75rem; padding: 8px 4px; }
-            .form-row { flex-direction: column; }
+            .order-input-row { flex-direction: column; }
         }
     </style>
 </head>
@@ -256,7 +286,6 @@
     <div class="tabs">
         <button class="tab-btn active" data-tab="tab1">📋 قائمة الطعام</button>
         <button class="tab-btn" data-tab="tab2">👥 العملاء & الطلبات</button>
-        <button class="tab-btn" data-tab="tab3">📊 ملخص الطلبات</button>
     </div>
 
     <!-- ========= تبويب 1: قائمة الطعام ========= -->
@@ -295,10 +324,12 @@
         </div>
     </div>
 
-    <!-- ========= تبويب 2: العملاء والطلبات ========= -->
+    <!-- ========= تبويب 2: العملاء والطلبات (مع بحث، إجمالي، ألوان متغيرة) ========= -->
     <div id="tab2" class="tab-content">
         <div class="card">
-            <div class="flex-between"><h3>➕ إضافة عميل جديد</h3></div>
+            <div class="flex-between">
+                <h3>➕ إضافة عميل جديد</h3>
+            </div>
             <div class="form-row">
                 <div class="input-group" style="flex:3">
                     <label>👤 اسم العميل</label>
@@ -306,28 +337,23 @@
                 </div>
                 <button id="addClientBtn">✨ إضافة عميل</button>
             </div>
+            
+            <!-- شريط البحث بالحرف الأول والثاني -->
+            <hr>
+            <div class="search-box">
+                <input type="text" id="searchClientInput" placeholder="بحث بالحرف الأول والثاني ... مثال: مح" style="flex:2">
+                <button id="searchBtn" class="btn-outline">🔍 بحث</button>
+                <button id="resetSearchBtn" class="btn-outline">🔄 عرض الكل</button>
+            </div>
             <hr>
             <h3>📋 قائمة العملاء وطلباتهم</h3>
             <div id="clientsContainer"></div>
         </div>
     </div>
-
-    <!-- ========= تبويب 3: ملخص الطلبات (مع زر حذف العميل ومجموع المبلغ) ========= -->
-    <div id="tab3" class="tab-content">
-        <div class="card">
-            <h3>🔍 البحث عن عميل (بالحروف الأولى)</h3>
-            <div class="search-box">
-                <input type="text" id="searchClientInput" placeholder="اكتب بداية الاسم ... مثل: مح" style="flex:1">
-                <button id="searchBtn" class="btn-outline">بحث</button>
-                <button id="resetSearchBtn" class="btn-outline">عرض الكل</button>
-            </div>
-            <div id="summaryResult"></div>
-        </div>
-    </div>
 </div>
 
 <script>
-    // ------------------- البيانات الأساسية -------------------
+    // ------------------- بيانات التطبيق مع الحفظ التلقائي -------------------
     let menuItems = [];   
     let clients = [];     
 
@@ -335,7 +361,68 @@
     let nextClientId = 1;
     let nextOrderId = 1;
 
-    // دالة التاريخ والوقت
+    // مفاتيح localStorage
+    const STORAGE_MENU = "bofiya_menu_items";
+    const STORAGE_CLIENTS = "bofiya_clients";
+    const STORAGE_IDS = "bofiya_ids";
+
+    // حفظ جميع البيانات
+    function saveAllData() {
+        localStorage.setItem(STORAGE_MENU, JSON.stringify(menuItems));
+        localStorage.setItem(STORAGE_CLIENTS, JSON.stringify(clients));
+        localStorage.setItem(STORAGE_IDS, JSON.stringify({ nextItemId, nextClientId, nextOrderId }));
+    }
+
+    // تحميل البيانات
+    function loadAllData() {
+        const savedMenu = localStorage.getItem(STORAGE_MENU);
+        const savedClients = localStorage.getItem(STORAGE_CLIENTS);
+        const savedIds = localStorage.getItem(STORAGE_IDS);
+        
+        if(savedMenu) {
+            menuItems = JSON.parse(savedMenu);
+            if(menuItems.length) {
+                nextItemId = Math.max(...menuItems.map(i=>i.id), 0) + 1;
+            }
+        } else {
+            // بيانات افتراضية جميلة
+            menuItems = [
+                { id: nextItemId++, type: 'sandwich', name: 'بيض وجبن', price: 8.5 },
+                { id: nextItemId++, type: 'sandwich', name: 'فلافل', price: 6 },
+                { id: nextItemId++, type: 'drink', name: 'عصير برتقال', price: 7 },
+                { id: nextItemId++, type: 'drink', name: 'مياه صغيرة', price: 2 }
+            ];
+        }
+        
+        if(savedClients) {
+            clients = JSON.parse(savedClients);
+            if(clients.length) {
+                nextClientId = Math.max(...clients.map(c=>c.id), 0) + 1;
+                let allOrdersId = [];
+                clients.forEach(c => c.orders.forEach(o => allOrdersId.push(o.orderId)));
+                if(allOrdersId.length) nextOrderId = Math.max(...allOrdersId, 0) + 1;
+            }
+        } else {
+            // عملاء تجريبيون
+            const nowDate = getArabicDateTime();
+            clients = [
+                { id: nextClientId++, name: 'محمد السعيد', orders: [] },
+                { id: nextClientId++, name: 'محمود حسن', orders: [] }
+            ];
+            clients[0].orders.push({ orderId: nextOrderId++, sandwichId:1, sandwichName:'بيض وجبن', sandwichQty:2, drinkId:3, drinkName:'عصير برتقال', drinkQty:1, totalPrice: 8.5*2+7, timestamp: nowDate, rawDate: new Date().toISOString() });
+            clients[1].orders.push({ orderId: nextOrderId++, sandwichId:2, sandwichName:'فلافل', sandwichQty:1, drinkId:4, drinkName:'مياه صغيرة', drinkQty:2, totalPrice: 6+4, timestamp: getArabicDateTime(), rawDate: new Date().toISOString() });
+        }
+        if(savedIds) {
+            const ids = JSON.parse(savedIds);
+            nextItemId = ids.nextItemId;
+            nextClientId = ids.nextClientId;
+            nextOrderId = ids.nextOrderId;
+        }
+        renderMenuTable();
+        renderFilteredClients(); 
+    }
+
+    // دالة التاريخ
     function getArabicDateTime() {
         const now = new Date();
         const optionsDate = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
@@ -348,7 +435,7 @@
         return `${dateStr} - ${timeStr}`;
     }
 
-    // عرض جدول قائمة الطعام
+    // عرض جدول الطعام
     function renderMenuTable() {
         const tbody = document.getElementById('menuList');
         if(!tbody) return;
@@ -367,15 +454,15 @@
             delBtn.onclick = () => {
                 menuItems = menuItems.filter(i => i.id !== item.id);
                 renderMenuTable();
-                renderAllClientsUI();  // تحديث القوائم المنسدلة للعملاء
-                renderSummary(document.getElementById('searchClientInput').value); // تحديث الملخص
+                renderFilteredClients(); 
+                saveAllData();
             };
             delCell.appendChild(delBtn);
         });
         if(menuItems.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">⚠️ لا توجد أصناف، أضف ساندويش أو مشروب أولاً</td></tr>';
         }
-        renderAllClientsUI();
+        saveAllData();
     }
 
     function addSandwich() {
@@ -386,6 +473,8 @@
         document.getElementById('sandwichName').value = '';
         document.getElementById('sandwichPrice').value = '';
         renderMenuTable();
+        renderFilteredClients();
+        saveAllData();
     }
 
     function addDrink() {
@@ -396,28 +485,26 @@
         document.getElementById('drinkName').value = '';
         document.getElementById('drinkPrice').value = '';
         renderMenuTable();
+        renderFilteredClients();
+        saveAllData();
     }
 
-    // إضافة عميل
     function addClient() {
         const name = document.getElementById('clientNameInput').value.trim();
         if(!name) { alert('أدخل اسم العميل'); return; }
-        const exists = clients.some(c => c.name === name);
-        if(exists) { alert('هذا العميل موجود مسبقاً'); return; }
+        if(clients.some(c => c.name === name)) { alert('هذا العميل موجود مسبقاً'); return; }
         clients.push({ id: nextClientId++, name, orders: [] });
         document.getElementById('clientNameInput').value = '';
-        renderAllClientsUI();
-        renderSummary(document.getElementById('searchClientInput').value);
+        renderFilteredClients();
+        saveAllData();
     }
 
-    // حذف عميل (يتم استدعاؤها من أي مكان، وتحذف نهائياً)
     function deleteClient(clientId) {
         clients = clients.filter(c => c.id !== clientId);
-        renderAllClientsUI();
-        renderSummary(document.getElementById('searchClientInput').value);
+        renderFilteredClients();
+        saveAllData();
     }
 
-    // إضافة طلب لعميل
     function addOrderToClient(clientId, sandwichId, sandwichQty, drinkId, drinkQty) {
         const client = clients.find(c => c.id === clientId);
         if(!client) return;
@@ -444,62 +531,83 @@
             rawDate: new Date().toISOString()
         };
         client.orders.push(newOrder);
-        renderAllClientsUI();
-        renderSummary(document.getElementById('searchClientInput').value);
+        renderFilteredClients();
+        saveAllData();
     }
 
     function deleteOrderFromClient(clientId, orderId) {
         const client = clients.find(c => c.id === clientId);
         if(client) {
             client.orders = client.orders.filter(o => o.orderId !== orderId);
-            renderAllClientsUI();
-            renderSummary(document.getElementById('searchClientInput').value);
+            renderFilteredClients();
+            saveAllData();
         }
     }
 
-    // عرض العملاء في تبويب العملاء
-    function renderAllClientsUI() {
+    // حساب إجمالي العميل
+    function getClientTotal(client) {
+        return client.orders.reduce((sum, order) => sum + order.totalPrice, 0);
+    }
+
+    // عرض العملاء مع فلتر البحث (بالحرف الاول والثاني)
+    let currentFilter = "";
+    function renderFilteredClients() {
         const container = document.getElementById('clientsContainer');
         if(!container) return;
-        if(clients.length === 0) {
-            container.innerHTML = '<div class="card" style="text-align:center">👈 أضف عميلاً جديداً لعرض طلباته</div>';
+        let filtered = [...clients];
+        if(currentFilter.trim() !== "") {
+            filtered = clients.filter(c => c.name.startsWith(currentFilter.trim()));
+        }
+        if(filtered.length === 0) {
+            container.innerHTML = '<div class="card" style="text-align:center">👈 لا يوجد عملاء تطابق البحث، أضف عميلاً جديداً</div>';
             return;
         }
         container.innerHTML = '';
-        const sandwiches = menuItems.filter(i => i.type === 'sandwich');
-        const drinks = menuItems.filter(i => i.type === 'drink');
-        
-        clients.forEach(client => {
-            const clientCard = document.createElement('div');
-            clientCard.className = 'client-order-item';
-            clientCard.innerHTML = `
-                <div class="flex-between" style="margin-bottom:12px">
-                    <h3 style="color:#b45f2b;">👤 ${client.name}</h3>
+        // ألوان باستيل مختلفة ومتناسقة
+        const pastelColors = [
+            "#FFF2E6", "#E6F7F0", "#FEE9E6", "#E8ECFC", "#FFF0DB", "#E3F2F5", "#FDEBD2", "#EAE6F9", "#FFEFE0", "#DCF5EA"
+        ];
+        filtered.forEach((client, idx) => {
+            const bgColor = pastelColors[idx % pastelColors.length];
+            const totalSpent = getClientTotal(client);
+            const clientDiv = document.createElement('div');
+            clientDiv.className = 'client-card';
+            clientDiv.style.backgroundColor = bgColor;
+            clientDiv.style.border = "1px solid rgba(0,0,0,0.03)";
+            
+            // بناء واجهة إضافة الطلب بشكل أفقي: الساندويش بجانبه العدد، والمشروب بجانبه العدد
+            const sandwiches = menuItems.filter(i => i.type === 'sandwich');
+            const drinks = menuItems.filter(i => i.type === 'drink');
+            
+            clientDiv.innerHTML = `
+                <div class="flex-between" style="margin-bottom:12px;">
+                    <div>
+                        <h3 style="color:#b45f2b; display:inline-block;">👤 ${client.name}</h3>
+                        <span class="badge" style="background:#d97706; color:white; margin-right:12px;">💰 الإجمالي: ${totalSpent.toFixed(2)} ريال</span>
+                    </div>
                     <button class="btn-danger" data-clientid="${client.id}" id="delClient_${client.id}">🗑 حذف العميل</button>
                 </div>
-                <div style="background:#f9e7d3; border-radius:24px; padding:12px; margin-bottom:14px;">
-                    <div class="form-row" style="margin-bottom:8px; gap:8px;">
-                        <div class="input-group">
+                <div style="background:rgba(255,245,235,0.8); border-radius:28px; padding:12px; margin-bottom:14px;">
+                    <div class="order-input-row">
+                        <div class="order-item">
                             <label>🥪 الساندويش</label>
-                            <select id="sandSelect_${client.id}">
-                                <option value="">-- اختر ساندويش --</option>
-                                ${sandwiches.map(s => `<option value="${s.id}">${s.name} (${s.price} ريال)</option>`).join('')}
-                            </select>
+                            <div class="inline-group">
+                                <select id="sandSelect_${client.id}" style="flex:2;">
+                                    <option value="">-- اختر --</option>
+                                    ${sandwiches.map(s => `<option value="${s.id}">${s.name} (${s.price} ريال)</option>`).join('')}
+                                </select>
+                                <input type="number" id="sandQty_${client.id}" value="1" min="0" step="1" style="width:75px;" placeholder="عدد">
+                            </div>
                         </div>
-                        <div class="input-group">
-                            <label>العدد</label>
-                            <input type="number" id="sandQty_${client.id}" value="1" min="0" step="1">
-                        </div>
-                        <div class="input-group">
+                        <div class="order-item">
                             <label>🥤 المشروب</label>
-                            <select id="drinkSelect_${client.id}">
-                                <option value="">-- اختر مشروب --</option>
-                                ${drinks.map(d => `<option value="${d.id}">${d.name} (${d.price} ريال)</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>العدد</label>
-                            <input type="number" id="drinkQty_${client.id}" value="1" min="0" step="1">
+                            <div class="inline-group">
+                                <select id="drinkSelect_${client.id}" style="flex:2;">
+                                    <option value="">-- اختر --</option>
+                                    ${drinks.map(d => `<option value="${d.id}">${d.name} (${d.price} ريال)</option>`).join('')}
+                                </select>
+                                <input type="number" id="drinkQty_${client.id}" value="1" min="0" step="1" style="width:75px;" placeholder="عدد">
+                            </div>
                         </div>
                         <button id="addOrderBtn_${client.id}" style="align-self:flex-end;">➕ إضافة طلب</button>
                     </div>
@@ -507,23 +615,21 @@
                 <h4>📜 سجل الطلبات</h4>
                 <div style="overflow-x:auto;">
                     <table width="100%">
-                        <thead><tr><th>الساندويش (العدد)</th><th>المشروب (العدد)</th><th>الإجمالي (ريال)</th><th>التاريخ والوقت</th><th>حذف</th></tr></thead>
+                        <thead><tr><th>الساندويش (العدد)</th><th>المشروب (العدد)</th><th>الإجمالي (ريال)</th><th>التاريخ والوقت</th><th>حذف</th></thead>
                         <tbody id="ordersBody_${client.id}"></tbody>
                     </table>
                 </div>
             `;
-            container.appendChild(clientCard);
+            container.appendChild(clientDiv);
             
             document.getElementById(`delClient_${client.id}`).addEventListener('click', () => deleteClient(client.id));
             document.getElementById(`addOrderBtn_${client.id}`).addEventListener('click', () => {
-                const sandSelect = document.getElementById(`sandSelect_${client.id}`);
-                const sandVal = sandSelect.value;
+                const sandVal = document.getElementById(`sandSelect_${client.id}`).value;
                 const sandQty = parseInt(document.getElementById(`sandQty_${client.id}`).value) || 0;
-                const drinkSelect = document.getElementById(`drinkSelect_${client.id}`);
-                const drinkVal = drinkSelect.value;
+                const drinkVal = document.getElementById(`drinkSelect_${client.id}`).value;
                 const drinkQty = parseInt(document.getElementById(`drinkQty_${client.id}`).value) || 0;
                 if((!sandVal || sandQty<=0) && (!drinkVal || drinkQty<=0)) {
-                    alert('يرجى اختيار ساندويش أو مشروب وكتابة عدد صحيح أكبر من 0');
+                    alert('يرجى اختيار ساندويش أو مشروب مع عدد صحيح أكبر من 0');
                     return;
                 }
                 addOrderToClient(client.id, sandVal || null, sandVal ? sandQty : 0, drinkVal || null, drinkVal ? drinkQty : 0);
@@ -553,95 +659,26 @@
         });
     }
 
-    // حساب مجموع ما طلبه العميل
-    function getClientTotal(client) {
-        return client.orders.reduce((sum, order) => sum + order.totalPrice, 0);
-    }
-
-    // عرض ملخص الطلبات مع زر حذف العميل + إجمالي المبلغ
-    function renderSummary(filterText = '') {
-        const container = document.getElementById('summaryResult');
-        if(!container) return;
-        let filteredClients = [...clients];
-        if(filterText.trim() !== '') {
-            filteredClients = clients.filter(c => c.name.startsWith(filterText.trim()));
-        }
-        if(filteredClients.length === 0) {
-            container.innerHTML = '<div class="card" style="text-align:center">❌ لا يوجد عملاء تطابق البحث</div>';
-            return;
-        }
-        container.innerHTML = '';
-        filteredClients.forEach(client => {
-            const totalSpent = getClientTotal(client);
-            const summaryDiv = document.createElement('div');
-            summaryDiv.className = 'client-order-item';
-            let ordersHtml = '';
-            if(client.orders.length === 0) {
-                ordersHtml = '<div class="badge">لا توجد طلبات مسجلة</div>';
-            } else {
-                ordersHtml = '<ul style="list-style:none; margin-top:8px;">';
-                client.orders.forEach(order => {
-                    let itemsDesc = [];
-                    if(order.sandwichName) itemsDesc.push(`${order.sandwichName} (${order.sandwichQty})`);
-                    if(order.drinkName) itemsDesc.push(`${order.drinkName} (${order.drinkQty})`);
-                    ordersHtml += `<li style="background:#fff0e0; margin-bottom:8px; padding:10px; border-radius:20px;">
-                        📅 ${order.timestamp} <br> 🍽️ ${itemsDesc.join(' + ')} | 💰 ${order.totalPrice.toFixed(2)} ريال
-                    </li>`;
-                });
-                ordersHtml += '</ul>';
-            }
-            summaryDiv.innerHTML = `
-                <div class="flex-between">
-                    <div>
-                        <h3 style="color:#b45f2b;">🧑‍🍳 ${client.name}</h3>
-                        <span class="badge" style="background:#d97706; color:white;">💰 الإجمالي: ${totalSpent.toFixed(2)} ريال</span>
-                    </div>
-                    <button class="btn-danger" data-clientid="${client.id}" id="delClientSummary_${client.id}">🗑 حذف العميل</button>
-                </div>
-                <div><strong>📦 جميع الطلبات:</strong></div>
-                ${ordersHtml}
-            `;
-            container.appendChild(summaryDiv);
-            // ربط زر الحذف الخاص بهذا العميل من داخل الملخص
-            document.getElementById(`delClientSummary_${client.id}`).addEventListener('click', () => deleteClient(client.id));
-        });
-    }
-
+    // البحث بالحرف الأول والثاني
     function handleSearch() {
-        const val = document.getElementById('searchClientInput').value;
-        renderSummary(val);
+        let val = document.getElementById('searchClientInput').value.trim();
+        currentFilter = val;
+        renderFilteredClients();
     }
     function resetSearch() {
         document.getElementById('searchClientInput').value = '';
-        renderSummary('');
+        currentFilter = '';
+        renderFilteredClients();
     }
 
-    // --- بيانات تجريبية أولية ---
-    function initDemoData() {
-        menuItems.push({ id: nextItemId++, type: 'sandwich', name: 'بيض وجبن', price: 8.5 });
-        menuItems.push({ id: nextItemId++, type: 'sandwich', name: 'فلافل', price: 6 });
-        menuItems.push({ id: nextItemId++, type: 'drink', name: 'عصير برتقال', price: 7 });
-        menuItems.push({ id: nextItemId++, type: 'drink', name: 'مياه صغيرة', price: 2 });
-        renderMenuTable();
-        
-        const client1 = { id: nextClientId++, name: 'محمد السعيد', orders: [] };
-        const client2 = { id: nextClientId++, name: 'محمود حسن', orders: [] };
-        clients.push(client1, client2);
-        
-        const nowDate = getArabicDateTime();
-        client1.orders.push({ orderId: nextOrderId++, sandwichId:1, sandwichName:'بيض وجبن', sandwichQty:2, drinkId:3, drinkName:'عصير برتقال', drinkQty:1, totalPrice: 8.5*2+7, timestamp: nowDate, rawDate: new Date().toISOString() });
-        client2.orders.push({ orderId: nextOrderId++, sandwichId:2, sandwichName:'فلافل', sandwichQty:1, drinkId:4, drinkName:'مياه صغيرة', drinkQty:2, totalPrice: 6+4, timestamp: getArabicDateTime(), rawDate: new Date().toISOString() });
-        
-        renderAllClientsUI();
-        renderSummary('');
-    }
-
+    // أحداث
     document.getElementById('addSandwichBtn')?.addEventListener('click', addSandwich);
     document.getElementById('addDrinkBtn')?.addEventListener('click', addDrink);
     document.getElementById('addClientBtn')?.addEventListener('click', addClient);
     document.getElementById('searchBtn')?.addEventListener('click', handleSearch);
     document.getElementById('resetSearchBtn')?.addEventListener('click', resetSearch);
     
+    // التبويب
     const tabsBtns = document.querySelectorAll('.tab-btn');
     const tabsContents = document.querySelectorAll('.tab-content');
     tabsBtns.forEach(btn => {
@@ -651,12 +688,11 @@
             btn.classList.add('active');
             tabsContents.forEach(content => content.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
-            if(tabId === 'tab3') renderSummary(document.getElementById('searchClientInput').value);
-            if(tabId === 'tab2') renderAllClientsUI();
+            if(tabId === 'tab2') renderFilteredClients();
         });
     });
 
-    initDemoData();
+    loadAllData();
 </script>
 </body>
 </html>
