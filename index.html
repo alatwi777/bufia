@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>بوفية شقف تبوك | نظام الطلبات</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', 'Tahoma', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #fef9e6 0%, #fff3e0 100%);
+            padding: 20px 16px 40px;
+            min-height: 100vh;
+        }
+
+        /* حاوية عامة */
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* صورة الهيدر مع النص */
+        .hero-card {
+            position: relative;
+            border-radius: 40px;
+            overflow: hidden;
+            margin-bottom: 28px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.25);
+            transition: transform 0.2s ease;
+        }
+
+        .hero-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            padding: 20px 16px 16px;
+            text-align: center;
+        }
+
+        .hero-overlay h1 {
+            color: white;
+            font-size: 1.9rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.4);
+            display: inline-block;
+            padding: 6px 24px;
+            border-radius: 60px;
+            backdrop-filter: blur(4px);
+            font-family: 'Cairo', sans-serif;
+        }
+
+        /* أزرار التبويب */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            background: #fff2e3;
+            padding: 8px;
+            border-radius: 60px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 12px 6px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            border-radius: 50px;
+            color: #b45f2b;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-family: inherit;
+        }
+
+        .tab-btn.active {
+            background: #d97706;
+            color: white;
+            box-shadow: 0 4px 10px rgba(217,119,6,0.3);
+        }
+
+        /* محتوى التبويبات */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        /* البطاقات والعناصر */
+        .card {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(2px);
+            border-radius: 32px;
+            padding: 20px 18px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,215,170,0.6);
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #b45f2b;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 28px;
+            border: 1.5px solid #ffddb0;
+            background: #fffaf5;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: #d97706;
+            box-shadow: 0 0 0 3px rgba(217,119,6,0.2);
+        }
+
+        button {
+            background: #d97706;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button:hover {
+            background: #b45f2b;
+            transform: scale(0.97);
+        }
+
+        .btn-outline {
+            background: #fff0e0;
+            color: #b45f2b;
+            border: 1px solid #f3c9a0;
+        }
+
+        .btn-outline:hover {
+            background: #ffe3cc;
+        }
+
+        .btn-danger {
+            background: #e07c4c;
+        }
+        .btn-danger:hover {
+            background: #c23d22;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 12px 6px;
+            text-align: center;
+            border-bottom: 1px solid #f2dbc4;
+            font-size: 0.85rem;
+        }
+
+        th {
+            background: #fbe9d8;
+            color: #8b4c1c;
+            font-weight: 800;
+        }
+
+        .badge {
+            background: #fef3c7;
+            color: #b45309;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .client-order-item {
+            background: #fef6ed;
+            border-radius: 24px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        hr {
+            margin: 15px 0;
+            border-color: #ffe1bd;
+        }
+
+        @media (max-width: 550px) {
+            body { padding: 12px; }
+            th, td { font-size: 0.75rem; padding: 8px 4px; }
+            .form-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- صورة header مع اسم المطعم مدمج -->
+    <div class="hero-card">
+        <img src="https://img.freepik.com/premium-psd/sandwich-with-cup-coffee-cup-coffee_787500-23486.jpg" alt="بوفية شقف تبوك">
+        <div class="hero-overlay">
+            <h1>بوفية شقف تبوك</h1>
+        </div>
+    </div>
+
+    <!-- تبويبات -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="tab1">📋 قائمة الطعام</button>
+        <button class="tab-btn" data-tab="tab2">👥 العملاء & الطلبات</button>
+        <button class="tab-btn" data-tab="tab3">📊 ملخص الطلبات</button>
+    </div>
+
+    <!-- ================= تبويب 1: قائمة الطعام ================= -->
+    <div id="tab1" class="tab-content active">
+        <div class="card">
+            <div class="form-row">
+                <div class="input-group">
+                    <label>🥪 اسم الساندويش</label>
+                    <input type="text" id="sandwichName" placeholder="مثال: بيض وجبن">
+                </div>
+                <div class="input-group">
+                    <label>💰 السعر (ريال)</label>
+                    <input type="number" id="sandwichPrice" placeholder="السعر" step="0.5">
+                </div>
+                <button id="addSandwichBtn">➕ إضافة ساندويش</button>
+            </div>
+            <div class="form-row">
+                <div class="input-group">
+                    <label>🥤 اسم المشروب</label>
+                    <input type="text" id="drinkName" placeholder="مثال: عصير برتقال">
+                </div>
+                <div class="input-group">
+                    <label>💰 السعر (ريال)</label>
+                    <input type="number" id="drinkPrice" placeholder="السعر" step="0.5">
+                </div>
+                <button id="addDrinkBtn">🧃 إضافة مشروب</button>
+            </div>
+            <hr>
+            <h3 style="color:#b45f2b;">📌 قائمة الأصناف</h3>
+            <div style="overflow-x: auto;">
+                <table id="menuTable">
+                    <thead>
+                        <tr><th>النوع</th><th>الاسم</th><th>السعر (ريال)</th><th>حذف</th></tr>
+                    </thead>
+                    <tbody id="menuList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= تبويب 2: العملاء والطلبات ================= -->
+    <div id="tab2" class="tab-content">
+        <div class="card">
+            <div class="flex-between">
+                <h3>➕ إضافة عميل جديد</h3>
+            </div>
+            <div class="form-row">
+                <div class="input-group" style="flex:3">
+                    <label>👤 اسم العميل</label>
+                    <input type="text" id="clientNameInput" placeholder="مثال: محمد السعيد">
+                </div>
+                <button id="addClientBtn">✨ إضافة عميل</button>
+            </div>
+            <hr>
+            <h3>📋 قائمة العملاء وطلباتهم</h3>
+            <div id="clientsContainer"></div>
+        </div>
+    </div>
+
+    <!-- ================= تبويب 3: ملخص الطلبات مع بحث ================= -->
+    <div id="tab3" class="tab-content">
+        <div class="card">
+            <h3>🔍 البحث عن عميل (بالحروف الأولى)</h3>
+            <div class="search-box">
+                <input type="text" id="searchClientInput" placeholder="اكتب بداية الاسم ... مثل: مح" style="flex:1">
+                <button id="searchBtn" class="btn-outline">بحث</button>
+                <button id="resetSearchBtn" class="btn-outline">عرض الكل</button>
+            </div>
+            <div id="summaryResult"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ------------------- البيانات الأساسية -------------------
+    let menuItems = [];   // { id, type, name, price }
+    let clients = [];     // { id, name, orders: [{ orderId, sandwichId, sandwichQty, drinkId, drinkQty, totalPrice, timestamp }] }
+
+    let nextItemId = 1;
+    let nextClientId = 1;
+    let nextOrderId = 1;
+
+    // دوال مساعدة للحصول على الوقت والتاريخ بصيغة عربية (الجمعة، 10 ابريل 9:00 م)
+    function getArabicDateTime() {
+        const now = new Date();
+        const optionsDate = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+        let dateStr = now.toLocaleDateString('ar-SA', optionsDate);
+        let hours = now.getHours();
+        let minutes = now.getMinutes().toString().padStart(2,'0');
+        let ampm = hours >= 12 ? 'م' : 'ص';
+        let hour12 = hours % 12 || 12;
+        let timeStr = `${hour12}:${minutes} ${ampm}`;
+        return `${dateStr} - ${timeStr}`;
+    }
+
+    // عرض قائمة الطعام في الجدول (تبويب 1)
+    function renderMenuTable() {
+        const tbody = document.getElementById('menuList');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+        menuItems.forEach(item => {
+            const row = tbody.insertRow();
+            row.insertCell(0).innerText = item.type === 'sandwich' ? '🥪 ساندويش' : '🥤 مشروب';
+            row.insertCell(1).innerText = item.name;
+            row.insertCell(2).innerText = item.price.toFixed(2);
+            const delCell = row.insertCell(3);
+            const delBtn = document.createElement('button');
+            delBtn.innerText = '🗑 حذف';
+            delBtn.className = 'btn-danger';
+            delBtn.style.padding = '6px 12px';
+            delBtn.style.fontSize = '0.7rem';
+            delBtn.onclick = () => {
+                menuItems = menuItems.filter(i => i.id !== item.id);
+                renderMenuTable();
+                // تحديث القوائم المنسدلة في العملاء (إعادة بناء الواجهة)
+                renderAllClientsUI();
+            };
+            delCell.appendChild(delBtn);
+        });
+        if(menuItems.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">⚠️ لا توجد أصناف، أضف ساندويش أو مشروب أولاً</td></tr>';
+        }
+        // تحديث القوائم المنسدلة في العملاء إذا كانت موجودة
+        renderAllClientsUI();
+    }
+
+    // إضافة ساندويش
+    function addSandwich() {
+        const name = document.getElementById('sandwichName').value.trim();
+        const price = parseFloat(document.getElementById('sandwichPrice').value);
+        if(!name || isNaN(price) || price <= 0) { alert('يرجى إدخال اسم ساندويش وسعر صحيح'); return; }
+        menuItems.push({ id: nextItemId++, type: 'sandwich', name, price });
+        document.getElementById('sandwichName').value = '';
+        document.getElementById('sandwichPrice').value = '';
+        renderMenuTable();
+    }
+
+    function addDrink() {
+        const name = document.getElementById('drinkName').value.trim();
+        const price = parseFloat(document.getElementById('drinkPrice').value);
+        if(!name || isNaN(price) || price <= 0) { alert('يرجى إدخال اسم مشروب وسعر صحيح'); return; }
+        menuItems.push({ id: nextItemId++, type: 'drink', name, price });
+        document.getElementById('drinkName').value = '';
+        document.getElementById('drinkPrice').value = '';
+        renderMenuTable();
+    }
+
+    // إضافة عميل جديد
+    function addClient() {
+        const name = document.getElementById('clientNameInput').value.trim();
+        if(!name) { alert('أدخل اسم العميل'); return; }
+        const exists = clients.some(c => c.name === name);
+        if(exists) { alert('هذا العميل موجود مسبقاً'); return; }
+        clients.push({ id: nextClientId++, name, orders: [] });
+        document.getElementById('clientNameInput').value = '';
+        renderAllClientsUI();
+    }
+
+    // حذف عميل بالكامل
+    function deleteClient(clientId) {
+        clients = clients.filter(c => c.id !== clientId);
+        renderAllClientsUI();
+    }
+
+    // إضافة طلب لعميل معين (يتم استدعاؤها من واجهة العميل)
+    function addOrderToClient(clientId, sandwichId, sandwichQty, drinkId, drinkQty) {
+        const client = clients.find(c => c.id === clientId);
+        if(!client) return;
+        const sandwichItem = menuItems.find(i => i.id === parseInt(sandwichId) && i.type === 'sandwich');
+        const drinkItem = menuItems.find(i => i.id === parseInt(drinkId) && i.type === 'drink');
+        if(!sandwichItem && !drinkItem) { alert('يجب اختيار ساندويش أو مشروب على الأقل'); return; }
+        let total = 0;
+        let sandwichDetails = '';
+        let drinkDetails = '';
+        if(sandwichItem && sandwichQty > 0) {
+            total += sandwichItem.price * sandwichQty;
+            sandwichDetails = `${sandwichItem.name} (${sandwichQty})`;
+        } else if(sandwichItem && sandwichQty <= 0) { alert('عدد الساندويشات يجب أن يكون أكبر من صفر'); return; }
+        if(drinkItem && drinkQty > 0) {
+            total += drinkItem.price * drinkQty;
+            drinkDetails = `${drinkItem.name} (${drinkQty})`;
+        } else if(drinkItem && drinkQty <= 0) { alert('عدد المشروبات يجب أن يكون أكبر من صفر'); return; }
+        
+        if(!sandwichItem && !drinkItem) { alert('اختر صنفاً صالحاً'); return; }
+        const timestamp = getArabicDateTime();
+        const newOrder = {
+            orderId: nextOrderId++,
+            sandwichId: sandwichItem ? sandwichItem.id : null,
+            sandwichName: sandwichItem ? sandwichItem.name : null,
+            sandwichQty: sandwichItem ? sandwichQty : 0,
+            drinkId: drinkItem ? drinkItem.id : null,
+            drinkName: drinkItem ? drinkItem.name : null,
+            drinkQty: drinkItem ? drinkQty : 0,
+            totalPrice: total,
+            timestamp: timestamp,
+            rawDate: new Date().toISOString()
+        };
+        client.orders.push(newOrder);
+        renderAllClientsUI();
+    }
+
+    // حذف طلب معين من عميل
+    function deleteOrderFromClient(clientId, orderId) {
+        const client = clients.find(c => c.id === clientId);
+        if(client) {
+            client.orders = client.orders.filter(o => o.orderId !== orderId);
+            renderAllClientsUI();
+        }
+    }
+
+    // عرض جميع العملاء مع جداول الطلبات والقوائم المنسدلة
+    function renderAllClientsUI() {
+        const container = document.getElementById('clientsContainer');
+        if(!container) return;
+        if(clients.length === 0) {
+            container.innerHTML = '<div class="card" style="text-align:center">👈 أضف عميلاً جديداً لعرض طلباته</div>';
+            return;
+        }
+        container.innerHTML = '';
+        // الحصول على قوائم الساندويشات والمشروبات المتاحة
+        const sandwiches = menuItems.filter(i => i.type === 'sandwich');
+        const drinks = menuItems.filter(i => i.type === 'drink');
+        
+        clients.forEach(client => {
+            const clientCard = document.createElement('div');
+            clientCard.className = 'client-order-item';
+            clientCard.style.marginBottom = '20px';
+            clientCard.style.background = '#fff8f0';
+            clientCard.innerHTML = `
+                <div class="flex-between" style="margin-bottom:12px">
+                    <h3 style="color:#b45f2b;">👤 ${client.name}</h3>
+                    <button class="btn-danger" data-clientid="${client.id}" id="delClient_${client.id}">🗑 حذف العميل</button>
+                </div>
+                <div style="background:#f9e7d3; border-radius:24px; padding:12px; margin-bottom:14px;">
+                    <div class="form-row" style="margin-bottom:8px; gap:8px;">
+                        <div class="input-group">
+                            <label>🥪 الساندويش</label>
+                            <select id="sandSelect_${client.id}">
+                                <option value="">-- اختر ساندويش --</option>
+                                ${sandwiches.map(s => `<option value="${s.id}">${s.name} (${s.price} ريال)</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>العدد</label>
+                            <input type="number" id="sandQty_${client.id}" value="1" min="0" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label>🥤 المشروب</label>
+                            <select id="drinkSelect_${client.id}">
+                                <option value="">-- اختر مشروب --</option>
+                                ${drinks.map(d => `<option value="${d.id}">${d.name} (${d.price} ريال)</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>العدد</label>
+                            <input type="number" id="drinkQty_${client.id}" value="1" min="0" step="1">
+                        </div>
+                        <button id="addOrderBtn_${client.id}" style="align-self:flex-end;">➕ إضافة طلب</button>
+                    </div>
+                </div>
+                <h4>📜 سجل الطلبات</h4>
+                <div style="overflow-x:auto;">
+                    <table width="100%">
+                        <thead>
+                            <tr><th>الساندويش (العدد)</th><th>المشروب (العدد)</th><th>الإجمالي (ريال)</th><th>التاريخ والوقت</th><th>حذف</th></tr>
+                        </thead>
+                        <tbody id="ordersBody_${client.id}"></tbody>
+                    </table>
+                </div>
+            `;
+            container.appendChild(clientCard);
+            
+            // ربط حذف العميل
+            document.getElementById(`delClient_${client.id}`).addEventListener('click', () => deleteClient(client.id));
+            // ربط زر إضافة الطلب
+            document.getElementById(`addOrderBtn_${client.id}`).addEventListener('click', () => {
+                const sandSelect = document.getElementById(`sandSelect_${client.id}`);
+                const sandVal = sandSelect.value;
+                const sandQty = parseInt(document.getElementById(`sandQty_${client.id}`).value) || 0;
+                const drinkSelect = document.getElementById(`drinkSelect_${client.id}`);
+                const drinkVal = drinkSelect.value;
+                const drinkQty = parseInt(document.getElementById(`drinkQty_${client.id}`).value) || 0;
+                if((!sandVal || sandQty<=0) && (!drinkVal || drinkQty<=0)) {
+                    alert('يرجى اختيار ساندويش أو مشروب وكتابة عدد صحيح أكبر من 0');
+                    return;
+                }
+                if(sandVal && sandQty<=0) { alert('عدد الساندويشات يجب أن يكون أكبر من صفر'); return; }
+                if(drinkVal && drinkQty<=0) { alert('عدد المشروبات يجب أن يكون أكبر من صفر'); return; }
+                addOrderToClient(client.id, sandVal || null, sandVal ? sandQty : 0, drinkVal || null, drinkVal ? drinkQty : 0);
+            });
+            
+            // عرض طلبات العميل في الجدول
+            const tbodyOrders = document.getElementById(`ordersBody_${client.id}`);
+            if(client.orders.length === 0) {
+                tbodyOrders.innerHTML = '<tr><td colspan="5" style="text-align:center">لا توجد طلبات بعد</td></tr>';
+            } else {
+                client.orders.forEach(order => {
+                    const row = tbodyOrders.insertRow();
+                    const sandwichText = order.sandwichName ? `${order.sandwichName} (${order.sandwichQty})` : '—';
+                    const drinkText = order.drinkName ? `${order.drinkName} (${order.drinkQty})` : '—';
+                    row.insertCell(0).innerText = sandwichText;
+                    row.insertCell(1).innerText = drinkText;
+                    row.insertCell(2).innerHTML = `<strong>${order.totalPrice.toFixed(2)}</strong>`;
+                    row.insertCell(3).innerText = order.timestamp;
+                    const delOrderBtn = document.createElement('button');
+                    delOrderBtn.innerText = '🗑';
+                    delOrderBtn.style.background = '#e07c4c';
+                    delOrderBtn.style.padding = '4px 12px';
+                    delOrderBtn.onclick = () => deleteOrderFromClient(client.id, order.orderId);
+                    const cell = row.insertCell(4);
+                    cell.appendChild(delOrderBtn);
+                });
+            }
+        });
+    }
+
+    // ------------------- ملخص الطلبات (تبويب 3) مع بحث بالحروف الأولى -------------------
+    function renderSummary(filterText = '') {
+        const container = document.getElementById('summaryResult');
+        if(!container) return;
+        let filteredClients = [...clients];
+        if(filterText.trim() !== '') {
+            filteredClients = clients.filter(c => c.name.startsWith(filterText.trim()));
+        }
+        if(filteredClients.length === 0) {
+            container.innerHTML = '<div class="card" style="text-align:center">❌ لا يوجد عملاء تطابق البحث</div>';
+            return;
+        }
+        container.innerHTML = '';
+        filteredClients.forEach(client => {
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'client-order-item';
+            summaryDiv.style.marginBottom = '20px';
+            let ordersHtml = '';
+            if(client.orders.length === 0) {
+                ordersHtml = '<div class="badge">لا توجد طلبات مسجلة</div>';
+            } else {
+                ordersHtml = '<ul style="list-style:none; margin-top:8px;">';
+                client.orders.forEach(order => {
+                    let itemsDesc = [];
+                    if(order.sandwichName) itemsDesc.push(`${order.sandwichName} (${order.sandwichQty})`);
+                    if(order.drinkName) itemsDesc.push(`${order.drinkName} (${order.drinkQty})`);
+                    ordersHtml += `<li style="background:#fff0e0; margin-bottom:8px; padding:10px; border-radius:20px;">
+                        📅 ${order.timestamp} <br> 🍽️ ${itemsDesc.join(' + ')} | 💰 ${order.totalPrice.toFixed(2)} ريال
+                    </li>`;
+                });
+                ordersHtml += '</ul>';
+            }
+            summaryDiv.innerHTML = `
+                <div class="flex-between">
+                    <h3 style="color:#b45f2b;">🧑‍🍳 ${client.name}</h3>
+                </div>
+                <div><strong>📦 جميع الطلبات:</strong></div>
+                ${ordersHtml}
+            `;
+            container.appendChild(summaryDiv);
+        });
+    }
+
+    // البحث
+    function handleSearch() {
+        const val = document.getElementById('searchClientInput').value;
+        renderSummary(val);
+    }
+    function resetSearch() {
+        document.getElementById('searchClientInput').value = '';
+        renderSummary('');
+    }
+
+    // --- أحداث وتهيئة البيانات الأولية (أمثلة جاهزة) ---
+    function initDemoData() {
+        // إضافة أصناف نموذجية
+        menuItems.push({ id: nextItemId++, type: 'sandwich', name: 'بيض وجبن', price: 8.5 });
+        menuItems.push({ id: nextItemId++, type: 'sandwich', name: 'فلافل', price: 6 });
+        menuItems.push({ id: nextItemId++, type: 'drink', name: 'عصير برتقال', price: 7 });
+        menuItems.push({ id: nextItemId++, type: 'drink', name: 'مياه صغيرة', price: 2 });
+        renderMenuTable();
+        // عملاء تجريبيون مع طلبات عشوائية لاختبار التاريخ
+        const client1 = { id: nextClientId++, name: 'محمد السعيد', orders: [] };
+        const client2 = { id: nextClientId++, name: 'محمود حسن', orders: [] };
+        clients.push(client1, client2);
+        // إضافة طلبات تجريبية لتظهر في الملخص
+        const nowDate = getArabicDateTime();
+        client1.orders.push({ orderId: nextOrderId++, sandwichId:1, sandwichName:'بيض وجبن', sandwichQty:2, drinkId:3, drinkName:'عصير برتقال', drinkQty:1, totalPrice: 8.5*2+7, timestamp: nowDate, rawDate: new Date().toISOString() });
+        client2.orders.push({ orderId: nextOrderId++, sandwichId:2, sandwichName:'فلافل', sandwichQty:1, drinkId:4, drinkName:'مياه صغيرة', drinkQty:2, totalPrice: 6+4, timestamp: getArabicDateTime(), rawDate: new Date().toISOString() });
+        renderAllClientsUI();
+        renderSummary('');
+    }
+
+    // ربط الأزرار
+    document.getElementById('addSandwichBtn')?.addEventListener('click', addSandwich);
+    document.getElementById('addDrinkBtn')?.addEventListener('click', addDrink);
+    document.getElementById('addClientBtn')?.addEventListener('click', addClient);
+    document.getElementById('searchBtn')?.addEventListener('click', handleSearch);
+    document.getElementById('resetSearchBtn')?.addEventListener('click', resetSearch);
+    
+    // التبويب
+    const tabsBtns = document.querySelectorAll('.tab-btn');
+    const tabsContents = document.querySelectorAll('.tab-content');
+    tabsBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.getAttribute('data-tab');
+            tabsBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            tabsContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if(tabId === 'tab3') renderSummary(document.getElementById('searchClientInput').value);
+            if(tabId === 'tab2') renderAllClientsUI();
+        });
+    });
+
+    initDemoData();
+</script>
+</body>
+</html>
