@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-    <title>بوفية شقف تبوك | نظام الطلبات</title>
+    <title>بوفية شقف تبوك | نظام الطلبات الذكي</title>
     <style>
         * {
             margin: 0;
@@ -18,20 +18,18 @@
             min-height: 100vh;
         }
 
-        /* حاوية عامة */
         .container {
             max-width: 700px;
             margin: 0 auto;
         }
 
-        /* صورة الهيدر مع النص */
+        /* صورة الهيدر */
         .hero-card {
             position: relative;
             border-radius: 40px;
             overflow: hidden;
             margin-bottom: 28px;
             box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.25);
-            transition: transform 0.2s ease;
         }
 
         .hero-card img {
@@ -55,14 +53,12 @@
             color: white;
             font-size: 1.9rem;
             font-weight: 800;
-            letter-spacing: 1px;
             text-shadow: 0 4px 12px rgba(0,0,0,0.5);
             background: rgba(0,0,0,0.4);
             display: inline-block;
             padding: 6px 24px;
             border-radius: 60px;
             backdrop-filter: blur(4px);
-            font-family: 'Cairo', sans-serif;
         }
 
         /* أزرار التبويب */
@@ -87,7 +83,6 @@
             color: #b45f2b;
             cursor: pointer;
             transition: all 0.25s;
-            font-family: inherit;
         }
 
         .tab-btn.active {
@@ -96,7 +91,6 @@
             box-shadow: 0 4px 10px rgba(217,119,6,0.3);
         }
 
-        /* محتوى التبويبات */
         .tab-content {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -111,10 +105,8 @@
             to { opacity: 1; transform: translateY(0);}
         }
 
-        /* البطاقات والعناصر */
         .card {
             background: rgba(255, 255, 255, 0.96);
-            backdrop-filter: blur(2px);
             border-radius: 32px;
             padding: 20px 18px;
             margin-bottom: 24px;
@@ -150,7 +142,6 @@
             border: 1.5px solid #ffddb0;
             background: #fffaf5;
             font-size: 0.95rem;
-            transition: 0.2s;
             outline: none;
         }
 
@@ -183,10 +174,6 @@
             background: #fff0e0;
             color: #b45f2b;
             border: 1px solid #f3c9a0;
-        }
-
-        .btn-outline:hover {
-            background: #ffe3cc;
         }
 
         .btn-danger {
@@ -259,7 +246,6 @@
 </head>
 <body>
 <div class="container">
-    <!-- صورة header مع اسم المطعم مدمج -->
     <div class="hero-card">
         <img src="https://img.freepik.com/premium-psd/sandwich-with-cup-coffee-cup-coffee_787500-23486.jpg" alt="بوفية شقف تبوك">
         <div class="hero-overlay">
@@ -267,14 +253,13 @@
         </div>
     </div>
 
-    <!-- تبويبات -->
     <div class="tabs">
         <button class="tab-btn active" data-tab="tab1">📋 قائمة الطعام</button>
         <button class="tab-btn" data-tab="tab2">👥 العملاء & الطلبات</button>
         <button class="tab-btn" data-tab="tab3">📊 ملخص الطلبات</button>
     </div>
 
-    <!-- ================= تبويب 1: قائمة الطعام ================= -->
+    <!-- ========= تبويب 1: قائمة الطعام ========= -->
     <div id="tab1" class="tab-content active">
         <div class="card">
             <div class="form-row">
@@ -303,21 +288,17 @@
             <h3 style="color:#b45f2b;">📌 قائمة الأصناف</h3>
             <div style="overflow-x: auto;">
                 <table id="menuTable">
-                    <thead>
-                        <tr><th>النوع</th><th>الاسم</th><th>السعر (ريال)</th><th>حذف</th></tr>
-                    </thead>
+                    <thead><tr><th>النوع</th><th>الاسم</th><th>السعر (ريال)</th><th>حذف</th></tr></thead>
                     <tbody id="menuList"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- ================= تبويب 2: العملاء والطلبات ================= -->
+    <!-- ========= تبويب 2: العملاء والطلبات ========= -->
     <div id="tab2" class="tab-content">
         <div class="card">
-            <div class="flex-between">
-                <h3>➕ إضافة عميل جديد</h3>
-            </div>
+            <div class="flex-between"><h3>➕ إضافة عميل جديد</h3></div>
             <div class="form-row">
                 <div class="input-group" style="flex:3">
                     <label>👤 اسم العميل</label>
@@ -331,7 +312,7 @@
         </div>
     </div>
 
-    <!-- ================= تبويب 3: ملخص الطلبات مع بحث ================= -->
+    <!-- ========= تبويب 3: ملخص الطلبات (مع زر حذف العميل ومجموع المبلغ) ========= -->
     <div id="tab3" class="tab-content">
         <div class="card">
             <h3>🔍 البحث عن عميل (بالحروف الأولى)</h3>
@@ -347,14 +328,14 @@
 
 <script>
     // ------------------- البيانات الأساسية -------------------
-    let menuItems = [];   // { id, type, name, price }
-    let clients = [];     // { id, name, orders: [{ orderId, sandwichId, sandwichQty, drinkId, drinkQty, totalPrice, timestamp }] }
+    let menuItems = [];   
+    let clients = [];     
 
     let nextItemId = 1;
     let nextClientId = 1;
     let nextOrderId = 1;
 
-    // دوال مساعدة للحصول على الوقت والتاريخ بصيغة عربية (الجمعة، 10 ابريل 9:00 م)
+    // دالة التاريخ والوقت
     function getArabicDateTime() {
         const now = new Date();
         const optionsDate = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
@@ -367,7 +348,7 @@
         return `${dateStr} - ${timeStr}`;
     }
 
-    // عرض قائمة الطعام في الجدول (تبويب 1)
+    // عرض جدول قائمة الطعام
     function renderMenuTable() {
         const tbody = document.getElementById('menuList');
         if(!tbody) return;
@@ -386,19 +367,17 @@
             delBtn.onclick = () => {
                 menuItems = menuItems.filter(i => i.id !== item.id);
                 renderMenuTable();
-                // تحديث القوائم المنسدلة في العملاء (إعادة بناء الواجهة)
-                renderAllClientsUI();
+                renderAllClientsUI();  // تحديث القوائم المنسدلة للعملاء
+                renderSummary(document.getElementById('searchClientInput').value); // تحديث الملخص
             };
             delCell.appendChild(delBtn);
         });
         if(menuItems.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">⚠️ لا توجد أصناف، أضف ساندويش أو مشروب أولاً</td></tr>';
         }
-        // تحديث القوائم المنسدلة في العملاء إذا كانت موجودة
         renderAllClientsUI();
     }
 
-    // إضافة ساندويش
     function addSandwich() {
         const name = document.getElementById('sandwichName').value.trim();
         const price = parseFloat(document.getElementById('sandwichPrice').value);
@@ -419,7 +398,7 @@
         renderMenuTable();
     }
 
-    // إضافة عميل جديد
+    // إضافة عميل
     function addClient() {
         const name = document.getElementById('clientNameInput').value.trim();
         if(!name) { alert('أدخل اسم العميل'); return; }
@@ -428,15 +407,17 @@
         clients.push({ id: nextClientId++, name, orders: [] });
         document.getElementById('clientNameInput').value = '';
         renderAllClientsUI();
+        renderSummary(document.getElementById('searchClientInput').value);
     }
 
-    // حذف عميل بالكامل
+    // حذف عميل (يتم استدعاؤها من أي مكان، وتحذف نهائياً)
     function deleteClient(clientId) {
         clients = clients.filter(c => c.id !== clientId);
         renderAllClientsUI();
+        renderSummary(document.getElementById('searchClientInput').value);
     }
 
-    // إضافة طلب لعميل معين (يتم استدعاؤها من واجهة العميل)
+    // إضافة طلب لعميل
     function addOrderToClient(clientId, sandwichId, sandwichQty, drinkId, drinkQty) {
         const client = clients.find(c => c.id === clientId);
         if(!client) return;
@@ -444,18 +425,11 @@
         const drinkItem = menuItems.find(i => i.id === parseInt(drinkId) && i.type === 'drink');
         if(!sandwichItem && !drinkItem) { alert('يجب اختيار ساندويش أو مشروب على الأقل'); return; }
         let total = 0;
-        let sandwichDetails = '';
-        let drinkDetails = '';
-        if(sandwichItem && sandwichQty > 0) {
-            total += sandwichItem.price * sandwichQty;
-            sandwichDetails = `${sandwichItem.name} (${sandwichQty})`;
-        } else if(sandwichItem && sandwichQty <= 0) { alert('عدد الساندويشات يجب أن يكون أكبر من صفر'); return; }
-        if(drinkItem && drinkQty > 0) {
-            total += drinkItem.price * drinkQty;
-            drinkDetails = `${drinkItem.name} (${drinkQty})`;
-        } else if(drinkItem && drinkQty <= 0) { alert('عدد المشروبات يجب أن يكون أكبر من صفر'); return; }
+        if(sandwichItem && sandwichQty > 0) total += sandwichItem.price * sandwichQty;
+        else if(sandwichItem && sandwichQty <= 0) { alert('عدد الساندويشات يجب أن يكون أكبر من صفر'); return; }
+        if(drinkItem && drinkQty > 0) total += drinkItem.price * drinkQty;
+        else if(drinkItem && drinkQty <= 0) { alert('عدد المشروبات يجب أن يكون أكبر من صفر'); return; }
         
-        if(!sandwichItem && !drinkItem) { alert('اختر صنفاً صالحاً'); return; }
         const timestamp = getArabicDateTime();
         const newOrder = {
             orderId: nextOrderId++,
@@ -471,18 +445,19 @@
         };
         client.orders.push(newOrder);
         renderAllClientsUI();
+        renderSummary(document.getElementById('searchClientInput').value);
     }
 
-    // حذف طلب معين من عميل
     function deleteOrderFromClient(clientId, orderId) {
         const client = clients.find(c => c.id === clientId);
         if(client) {
             client.orders = client.orders.filter(o => o.orderId !== orderId);
             renderAllClientsUI();
+            renderSummary(document.getElementById('searchClientInput').value);
         }
     }
 
-    // عرض جميع العملاء مع جداول الطلبات والقوائم المنسدلة
+    // عرض العملاء في تبويب العملاء
     function renderAllClientsUI() {
         const container = document.getElementById('clientsContainer');
         if(!container) return;
@@ -491,15 +466,12 @@
             return;
         }
         container.innerHTML = '';
-        // الحصول على قوائم الساندويشات والمشروبات المتاحة
         const sandwiches = menuItems.filter(i => i.type === 'sandwich');
         const drinks = menuItems.filter(i => i.type === 'drink');
         
         clients.forEach(client => {
             const clientCard = document.createElement('div');
             clientCard.className = 'client-order-item';
-            clientCard.style.marginBottom = '20px';
-            clientCard.style.background = '#fff8f0';
             clientCard.innerHTML = `
                 <div class="flex-between" style="margin-bottom:12px">
                     <h3 style="color:#b45f2b;">👤 ${client.name}</h3>
@@ -535,18 +507,14 @@
                 <h4>📜 سجل الطلبات</h4>
                 <div style="overflow-x:auto;">
                     <table width="100%">
-                        <thead>
-                            <tr><th>الساندويش (العدد)</th><th>المشروب (العدد)</th><th>الإجمالي (ريال)</th><th>التاريخ والوقت</th><th>حذف</th></tr>
-                        </thead>
+                        <thead><tr><th>الساندويش (العدد)</th><th>المشروب (العدد)</th><th>الإجمالي (ريال)</th><th>التاريخ والوقت</th><th>حذف</th></tr></thead>
                         <tbody id="ordersBody_${client.id}"></tbody>
                     </table>
                 </div>
             `;
             container.appendChild(clientCard);
             
-            // ربط حذف العميل
             document.getElementById(`delClient_${client.id}`).addEventListener('click', () => deleteClient(client.id));
-            // ربط زر إضافة الطلب
             document.getElementById(`addOrderBtn_${client.id}`).addEventListener('click', () => {
                 const sandSelect = document.getElementById(`sandSelect_${client.id}`);
                 const sandVal = sandSelect.value;
@@ -558,12 +526,9 @@
                     alert('يرجى اختيار ساندويش أو مشروب وكتابة عدد صحيح أكبر من 0');
                     return;
                 }
-                if(sandVal && sandQty<=0) { alert('عدد الساندويشات يجب أن يكون أكبر من صفر'); return; }
-                if(drinkVal && drinkQty<=0) { alert('عدد المشروبات يجب أن يكون أكبر من صفر'); return; }
                 addOrderToClient(client.id, sandVal || null, sandVal ? sandQty : 0, drinkVal || null, drinkVal ? drinkQty : 0);
             });
             
-            // عرض طلبات العميل في الجدول
             const tbodyOrders = document.getElementById(`ordersBody_${client.id}`);
             if(client.orders.length === 0) {
                 tbodyOrders.innerHTML = '<tr><td colspan="5" style="text-align:center">لا توجد طلبات بعد</td></tr>';
@@ -588,7 +553,12 @@
         });
     }
 
-    // ------------------- ملخص الطلبات (تبويب 3) مع بحث بالحروف الأولى -------------------
+    // حساب مجموع ما طلبه العميل
+    function getClientTotal(client) {
+        return client.orders.reduce((sum, order) => sum + order.totalPrice, 0);
+    }
+
+    // عرض ملخص الطلبات مع زر حذف العميل + إجمالي المبلغ
     function renderSummary(filterText = '') {
         const container = document.getElementById('summaryResult');
         if(!container) return;
@@ -602,9 +572,9 @@
         }
         container.innerHTML = '';
         filteredClients.forEach(client => {
+            const totalSpent = getClientTotal(client);
             const summaryDiv = document.createElement('div');
             summaryDiv.className = 'client-order-item';
-            summaryDiv.style.marginBottom = '20px';
             let ordersHtml = '';
             if(client.orders.length === 0) {
                 ordersHtml = '<div class="badge">لا توجد طلبات مسجلة</div>';
@@ -622,16 +592,21 @@
             }
             summaryDiv.innerHTML = `
                 <div class="flex-between">
-                    <h3 style="color:#b45f2b;">🧑‍🍳 ${client.name}</h3>
+                    <div>
+                        <h3 style="color:#b45f2b;">🧑‍🍳 ${client.name}</h3>
+                        <span class="badge" style="background:#d97706; color:white;">💰 الإجمالي: ${totalSpent.toFixed(2)} ريال</span>
+                    </div>
+                    <button class="btn-danger" data-clientid="${client.id}" id="delClientSummary_${client.id}">🗑 حذف العميل</button>
                 </div>
                 <div><strong>📦 جميع الطلبات:</strong></div>
                 ${ordersHtml}
             `;
             container.appendChild(summaryDiv);
+            // ربط زر الحذف الخاص بهذا العميل من داخل الملخص
+            document.getElementById(`delClientSummary_${client.id}`).addEventListener('click', () => deleteClient(client.id));
         });
     }
 
-    // البحث
     function handleSearch() {
         const val = document.getElementById('searchClientInput').value;
         renderSummary(val);
@@ -641,34 +616,32 @@
         renderSummary('');
     }
 
-    // --- أحداث وتهيئة البيانات الأولية (أمثلة جاهزة) ---
+    // --- بيانات تجريبية أولية ---
     function initDemoData() {
-        // إضافة أصناف نموذجية
         menuItems.push({ id: nextItemId++, type: 'sandwich', name: 'بيض وجبن', price: 8.5 });
         menuItems.push({ id: nextItemId++, type: 'sandwich', name: 'فلافل', price: 6 });
         menuItems.push({ id: nextItemId++, type: 'drink', name: 'عصير برتقال', price: 7 });
         menuItems.push({ id: nextItemId++, type: 'drink', name: 'مياه صغيرة', price: 2 });
         renderMenuTable();
-        // عملاء تجريبيون مع طلبات عشوائية لاختبار التاريخ
+        
         const client1 = { id: nextClientId++, name: 'محمد السعيد', orders: [] };
         const client2 = { id: nextClientId++, name: 'محمود حسن', orders: [] };
         clients.push(client1, client2);
-        // إضافة طلبات تجريبية لتظهر في الملخص
+        
         const nowDate = getArabicDateTime();
         client1.orders.push({ orderId: nextOrderId++, sandwichId:1, sandwichName:'بيض وجبن', sandwichQty:2, drinkId:3, drinkName:'عصير برتقال', drinkQty:1, totalPrice: 8.5*2+7, timestamp: nowDate, rawDate: new Date().toISOString() });
         client2.orders.push({ orderId: nextOrderId++, sandwichId:2, sandwichName:'فلافل', sandwichQty:1, drinkId:4, drinkName:'مياه صغيرة', drinkQty:2, totalPrice: 6+4, timestamp: getArabicDateTime(), rawDate: new Date().toISOString() });
+        
         renderAllClientsUI();
         renderSummary('');
     }
 
-    // ربط الأزرار
     document.getElementById('addSandwichBtn')?.addEventListener('click', addSandwich);
     document.getElementById('addDrinkBtn')?.addEventListener('click', addDrink);
     document.getElementById('addClientBtn')?.addEventListener('click', addClient);
     document.getElementById('searchBtn')?.addEventListener('click', handleSearch);
     document.getElementById('resetSearchBtn')?.addEventListener('click', resetSearch);
     
-    // التبويب
     const tabsBtns = document.querySelectorAll('.tab-btn');
     const tabsContents = document.querySelectorAll('.tab-content');
     tabsBtns.forEach(btn => {
