@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-    <title>بوفية شقف تبوك | نظام الطلبات الذكي</title>
+    <title>بوفية شقف تبوك | نظام الطلبات المتكامل</title>
     <style>
         * {
             margin: 0;
@@ -23,7 +23,6 @@
             margin: 0 auto;
         }
 
-        /* صورة الهيدر */
         .hero-card {
             position: relative;
             border-radius: 40px;
@@ -61,7 +60,6 @@
             backdrop-filter: blur(4px);
         }
 
-        /* أزرار التبويب (تبويبان فقط) */
         .tabs {
             display: flex;
             gap: 12px;
@@ -218,7 +216,6 @@
             align-items: center;
         }
 
-        /* بطاقات العملاء بألوان باستيل مختلفة */
         .client-card {
             border-radius: 28px;
             padding: 16px;
@@ -240,7 +237,6 @@
             border-color: #ffe1bd;
         }
 
-        /* تحسين تخطيط الصفوف في إضافة الطلب */
         .order-input-row {
             display: flex;
             flex-wrap: wrap;
@@ -267,10 +263,20 @@
         .inline-group select, .inline-group input {
             flex: 2;
         }
+        .extra-amount-row {
+            background: #fff3e6;
+            border-radius: 24px;
+            padding: 12px;
+            margin: 10px 0;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
         @media (max-width: 550px) {
             body { padding: 12px; }
             th, td { font-size: 0.75rem; padding: 8px 4px; }
             .order-input-row { flex-direction: column; }
+            .extra-amount-row { flex-direction: column; }
         }
     </style>
 </head>
@@ -288,7 +294,7 @@
         <button class="tab-btn" data-tab="tab2">👥 العملاء & الطلبات</button>
     </div>
 
-    <!-- ========= تبويب 1: قائمة الطعام ========= -->
+    <!-- تبويب 1: قائمة الطعام -->
     <div id="tab1" class="tab-content active">
         <div class="card">
             <div class="form-row">
@@ -324,7 +330,7 @@
         </div>
     </div>
 
-    <!-- ========= تبويب 2: العملاء والطلبات (مع بحث، إجمالي، ألوان متغيرة) ========= -->
+    <!-- تبويب 2: العملاء والطلبات مع إضافة مبلغ مباشر -->
     <div id="tab2" class="tab-content">
         <div class="card">
             <div class="flex-between">
@@ -337,8 +343,6 @@
                 </div>
                 <button id="addClientBtn">✨ إضافة عميل</button>
             </div>
-            
-            <!-- شريط البحث بالحرف الأول والثاني -->
             <hr>
             <div class="search-box">
                 <input type="text" id="searchClientInput" placeholder="بحث بالحرف الأول والثاني ... مثال: مح" style="flex:2">
@@ -353,7 +357,7 @@
 </div>
 
 <script>
-    // ------------------- بيانات التطبيق مع الحفظ التلقائي -------------------
+    // ------------------- البيانات -------------------
     let menuItems = [];   
     let clients = [];     
 
@@ -361,19 +365,17 @@
     let nextClientId = 1;
     let nextOrderId = 1;
 
-    // مفاتيح localStorage
+    // localStorage keys
     const STORAGE_MENU = "bofiya_menu_items";
     const STORAGE_CLIENTS = "bofiya_clients";
     const STORAGE_IDS = "bofiya_ids";
 
-    // حفظ جميع البيانات
     function saveAllData() {
         localStorage.setItem(STORAGE_MENU, JSON.stringify(menuItems));
         localStorage.setItem(STORAGE_CLIENTS, JSON.stringify(clients));
         localStorage.setItem(STORAGE_IDS, JSON.stringify({ nextItemId, nextClientId, nextOrderId }));
     }
 
-    // تحميل البيانات
     function loadAllData() {
         const savedMenu = localStorage.getItem(STORAGE_MENU);
         const savedClients = localStorage.getItem(STORAGE_CLIENTS);
@@ -381,11 +383,8 @@
         
         if(savedMenu) {
             menuItems = JSON.parse(savedMenu);
-            if(menuItems.length) {
-                nextItemId = Math.max(...menuItems.map(i=>i.id), 0) + 1;
-            }
+            if(menuItems.length) nextItemId = Math.max(...menuItems.map(i=>i.id), 0) + 1;
         } else {
-            // بيانات افتراضية جميلة
             menuItems = [
                 { id: nextItemId++, type: 'sandwich', name: 'بيض وجبن', price: 8.5 },
                 { id: nextItemId++, type: 'sandwich', name: 'فلافل', price: 6 },
@@ -403,14 +402,13 @@
                 if(allOrdersId.length) nextOrderId = Math.max(...allOrdersId, 0) + 1;
             }
         } else {
-            // عملاء تجريبيون
             const nowDate = getArabicDateTime();
             clients = [
                 { id: nextClientId++, name: 'محمد السعيد', orders: [] },
                 { id: nextClientId++, name: 'محمود حسن', orders: [] }
             ];
-            clients[0].orders.push({ orderId: nextOrderId++, sandwichId:1, sandwichName:'بيض وجبن', sandwichQty:2, drinkId:3, drinkName:'عصير برتقال', drinkQty:1, totalPrice: 8.5*2+7, timestamp: nowDate, rawDate: new Date().toISOString() });
-            clients[1].orders.push({ orderId: nextOrderId++, sandwichId:2, sandwichName:'فلافل', sandwichQty:1, drinkId:4, drinkName:'مياه صغيرة', drinkQty:2, totalPrice: 6+4, timestamp: getArabicDateTime(), rawDate: new Date().toISOString() });
+            clients[0].orders.push({ orderId: nextOrderId++, type: 'meal', sandwichId:1, sandwichName:'بيض وجبن', sandwichQty:2, drinkId:3, drinkName:'عصير برتقال', drinkQty:1, totalPrice: 8.5*2+7, timestamp: nowDate, rawDate: new Date().toISOString() });
+            clients[1].orders.push({ orderId: nextOrderId++, type: 'meal', sandwichId:2, sandwichName:'فلافل', sandwichQty:1, drinkId:4, drinkName:'مياه صغيرة', drinkQty:2, totalPrice: 6+4, timestamp: getArabicDateTime(), rawDate: new Date().toISOString() });
         }
         if(savedIds) {
             const ids = JSON.parse(savedIds);
@@ -422,7 +420,6 @@
         renderFilteredClients(); 
     }
 
-    // دالة التاريخ
     function getArabicDateTime() {
         const now = new Date();
         const optionsDate = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
@@ -435,7 +432,6 @@
         return `${dateStr} - ${timeStr}`;
     }
 
-    // عرض جدول الطعام
     function renderMenuTable() {
         const tbody = document.getElementById('menuList');
         if(!tbody) return;
@@ -459,9 +455,7 @@
             };
             delCell.appendChild(delBtn);
         });
-        if(menuItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">⚠️ لا توجد أصناف، أضف ساندويش أو مشروب أولاً</td></tr>';
-        }
+        if(menuItems.length === 0) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">⚠️ لا توجد أصناف، أضف ساندويش أو مشروب أولاً</td></tr>';
         saveAllData();
     }
 
@@ -505,6 +499,7 @@
         saveAllData();
     }
 
+    // إضافة طلب عادي (ساندويش/مشروب)
     function addOrderToClient(clientId, sandwichId, sandwichQty, drinkId, drinkQty) {
         const client = clients.find(c => c.id === clientId);
         if(!client) return;
@@ -512,14 +507,16 @@
         const drinkItem = menuItems.find(i => i.id === parseInt(drinkId) && i.type === 'drink');
         if(!sandwichItem && !drinkItem) { alert('يجب اختيار ساندويش أو مشروب على الأقل'); return; }
         let total = 0;
-        if(sandwichItem && sandwichQty > 0) total += sandwichItem.price * sandwichQty;
+        let details = [];
+        if(sandwichItem && sandwichQty > 0) { total += sandwichItem.price * sandwichQty; details.push(`${sandwichItem.name} (${sandwichQty})`); }
         else if(sandwichItem && sandwichQty <= 0) { alert('عدد الساندويشات يجب أن يكون أكبر من صفر'); return; }
-        if(drinkItem && drinkQty > 0) total += drinkItem.price * drinkQty;
+        if(drinkItem && drinkQty > 0) { total += drinkItem.price * drinkQty; details.push(`${drinkItem.name} (${drinkQty})`); }
         else if(drinkItem && drinkQty <= 0) { alert('عدد المشروبات يجب أن يكون أكبر من صفر'); return; }
         
         const timestamp = getArabicDateTime();
         const newOrder = {
             orderId: nextOrderId++,
+            type: 'meal',
             sandwichId: sandwichItem ? sandwichItem.id : null,
             sandwichName: sandwichItem ? sandwichItem.name : null,
             sandwichQty: sandwichItem ? sandwichQty : 0,
@@ -527,12 +524,33 @@
             drinkName: drinkItem ? drinkItem.name : null,
             drinkQty: drinkItem ? drinkQty : 0,
             totalPrice: total,
+            description: details.join(' + '),
             timestamp: timestamp,
             rawDate: new Date().toISOString()
         };
         client.orders.push(newOrder);
         renderFilteredClients();
         saveAllData();
+    }
+
+    // إضافة مبلغ مباشر (بدون اختيار من القائمة)
+    function addExtraAmount(clientId, amount) {
+        const client = clients.find(c => c.id === clientId);
+        if(!client) return;
+        if(isNaN(amount) || amount <= 0) { alert('الرجاء إدخال مبلغ صحيح أكبر من صفر'); return false; }
+        const timestamp = getArabicDateTime();
+        const extraOrder = {
+            orderId: nextOrderId++,
+            type: 'extra',
+            totalPrice: amount,
+            description: `💵 مبلغ إضافي: ${amount} ريال`,
+            timestamp: timestamp,
+            rawDate: new Date().toISOString()
+        };
+        client.orders.push(extraOrder);
+        renderFilteredClients();
+        saveAllData();
+        return true;
     }
 
     function deleteOrderFromClient(clientId, orderId) {
@@ -544,41 +562,33 @@
         }
     }
 
-    // حساب إجمالي العميل
     function getClientTotal(client) {
         return client.orders.reduce((sum, order) => sum + order.totalPrice, 0);
     }
 
-    // عرض العملاء مع فلتر البحث (بالحرف الاول والثاني)
     let currentFilter = "";
     function renderFilteredClients() {
         const container = document.getElementById('clientsContainer');
         if(!container) return;
         let filtered = [...clients];
-        if(currentFilter.trim() !== "") {
-            filtered = clients.filter(c => c.name.startsWith(currentFilter.trim()));
-        }
+        if(currentFilter.trim() !== "") filtered = clients.filter(c => c.name.startsWith(currentFilter.trim()));
         if(filtered.length === 0) {
             container.innerHTML = '<div class="card" style="text-align:center">👈 لا يوجد عملاء تطابق البحث، أضف عميلاً جديداً</div>';
             return;
         }
         container.innerHTML = '';
-        // ألوان باستيل مختلفة ومتناسقة
-        const pastelColors = [
-            "#FFF2E6", "#E6F7F0", "#FEE9E6", "#E8ECFC", "#FFF0DB", "#E3F2F5", "#FDEBD2", "#EAE6F9", "#FFEFE0", "#DCF5EA"
-        ];
+        const pastelColors = ["#FFF2E6", "#E6F7F0", "#FEE9E6", "#E8ECFC", "#FFF0DB", "#E3F2F5", "#FDEBD2", "#EAE6F9", "#FFEFE0", "#DCF5EA"];
+        
         filtered.forEach((client, idx) => {
             const bgColor = pastelColors[idx % pastelColors.length];
             const totalSpent = getClientTotal(client);
+            const sandwiches = menuItems.filter(i => i.type === 'sandwich');
+            const drinks = menuItems.filter(i => i.type === 'drink');
+            
             const clientDiv = document.createElement('div');
             clientDiv.className = 'client-card';
             clientDiv.style.backgroundColor = bgColor;
             clientDiv.style.border = "1px solid rgba(0,0,0,0.03)";
-            
-            // بناء واجهة إضافة الطلب بشكل أفقي: الساندويش بجانبه العدد، والمشروب بجانبه العدد
-            const sandwiches = menuItems.filter(i => i.type === 'sandwich');
-            const drinks = menuItems.filter(i => i.type === 'drink');
-            
             clientDiv.innerHTML = `
                 <div class="flex-between" style="margin-bottom:12px;">
                     <div>
@@ -587,6 +597,15 @@
                     </div>
                     <button class="btn-danger" data-clientid="${client.id}" id="delClient_${client.id}">🗑 حذف العميل</button>
                 </div>
+                <!-- حقل إضافة مبلغ مباشر جديد -->
+                <div class="extra-amount-row">
+                    <div style="flex:2">
+                        <label>💰 إضافة مبلغ إضافي (ريال)</label>
+                        <input type="number" id="extraAmount_${client.id}" placeholder="مثال: 8" step="0.5" value="">
+                    </div>
+                    <button id="addExtraBtn_${client.id}" style="background:#2c7a4d;">➕ إضافة مبلغ</button>
+                </div>
+                <!-- طلب عادي من القائمة -->
                 <div style="background:rgba(255,245,235,0.8); border-radius:28px; padding:12px; margin-bottom:14px;">
                     <div class="order-input-row">
                         <div class="order-item">
@@ -612,10 +631,10 @@
                         <button id="addOrderBtn_${client.id}" style="align-self:flex-end;">➕ إضافة طلب</button>
                     </div>
                 </div>
-                <h4>📜 سجل الطلبات</h4>
+                <h4>📜 سجل الطلبات (يشمل المبالغ المضافة)</h4>
                 <div style="overflow-x:auto;">
                     <table width="100%">
-                        <thead><tr><th>الساندويش (العدد)</th><th>المشروب (العدد)</th><th>الإجمالي (ريال)</th><th>التاريخ والوقت</th><th>حذف</th></thead>
+                        <thead><tr><th>الوصف</th><th>المبلغ (ريال)</th><th>التاريخ والوقت</th><th>حذف</th></tr></thead>
                         <tbody id="ordersBody_${client.id}"></tbody>
                     </table>
                 </div>
@@ -623,6 +642,18 @@
             container.appendChild(clientDiv);
             
             document.getElementById(`delClient_${client.id}`).addEventListener('click', () => deleteClient(client.id));
+            // إضافة مبلغ مباشر
+            document.getElementById(`addExtraBtn_${client.id}`).addEventListener('click', () => {
+                const amountInput = document.getElementById(`extraAmount_${client.id}`);
+                const amount = parseFloat(amountInput.value);
+                if(!isNaN(amount) && amount > 0) {
+                    addExtraAmount(client.id, amount);
+                    amountInput.value = '';
+                } else {
+                    alert('يرجى إدخال مبلغ صحيح أكبر من صفر');
+                }
+            });
+            // إضافة طلب من القائمة
             document.getElementById(`addOrderBtn_${client.id}`).addEventListener('click', () => {
                 const sandVal = document.getElementById(`sandSelect_${client.id}`).value;
                 const sandQty = parseInt(document.getElementById(`sandQty_${client.id}`).value) || 0;
@@ -637,32 +668,37 @@
             
             const tbodyOrders = document.getElementById(`ordersBody_${client.id}`);
             if(client.orders.length === 0) {
-                tbodyOrders.innerHTML = '<tr><td colspan="5" style="text-align:center">لا توجد طلبات بعد</td></tr>';
+                tbodyOrders.innerHTML = '<tr><td colspan="4" style="text-align:center">لا توجد طلبات بعد</td></tr>';
             } else {
-                client.orders.forEach(order => {
+                // عرض جميع الطلبات (الوجبات والمبالغ الإضافية)
+                client.orders.slice().sort((a,b)=> (a.rawDate || '').localeCompare(b.rawDate || '')).forEach(order => {
                     const row = tbodyOrders.insertRow();
-                    const sandwichText = order.sandwichName ? `${order.sandwichName} (${order.sandwichQty})` : '—';
-                    const drinkText = order.drinkName ? `${order.drinkName} (${order.drinkQty})` : '—';
-                    row.insertCell(0).innerText = sandwichText;
-                    row.insertCell(1).innerText = drinkText;
-                    row.insertCell(2).innerHTML = `<strong>${order.totalPrice.toFixed(2)}</strong>`;
-                    row.insertCell(3).innerText = order.timestamp;
+                    let descText = '';
+                    if(order.type === 'extra') {
+                        descText = order.description;
+                    } else {
+                        let items = [];
+                        if(order.sandwichName) items.push(`${order.sandwichName} (${order.sandwichQty})`);
+                        if(order.drinkName) items.push(`${order.drinkName} (${order.drinkQty})`);
+                        descText = items.join(' + ');
+                    }
+                    row.insertCell(0).innerText = descText;
+                    row.insertCell(1).innerHTML = `<strong>${order.totalPrice.toFixed(2)}</strong>`;
+                    row.insertCell(2).innerText = order.timestamp;
                     const delOrderBtn = document.createElement('button');
                     delOrderBtn.innerText = '🗑';
                     delOrderBtn.style.background = '#e07c4c';
                     delOrderBtn.style.padding = '4px 12px';
                     delOrderBtn.onclick = () => deleteOrderFromClient(client.id, order.orderId);
-                    const cell = row.insertCell(4);
+                    const cell = row.insertCell(3);
                     cell.appendChild(delOrderBtn);
                 });
             }
         });
     }
 
-    // البحث بالحرف الأول والثاني
     function handleSearch() {
-        let val = document.getElementById('searchClientInput').value.trim();
-        currentFilter = val;
+        currentFilter = document.getElementById('searchClientInput').value.trim();
         renderFilteredClients();
     }
     function resetSearch() {
@@ -671,14 +707,12 @@
         renderFilteredClients();
     }
 
-    // أحداث
     document.getElementById('addSandwichBtn')?.addEventListener('click', addSandwich);
     document.getElementById('addDrinkBtn')?.addEventListener('click', addDrink);
     document.getElementById('addClientBtn')?.addEventListener('click', addClient);
     document.getElementById('searchBtn')?.addEventListener('click', handleSearch);
     document.getElementById('resetSearchBtn')?.addEventListener('click', resetSearch);
     
-    // التبويب
     const tabsBtns = document.querySelectorAll('.tab-btn');
     const tabsContents = document.querySelectorAll('.tab-content');
     tabsBtns.forEach(btn => {
