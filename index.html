@@ -181,6 +181,11 @@
             background: #c23d22;
         }
 
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -232,6 +237,13 @@
             gap: 8px;
         }
 
+        .flex-start {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
         hr {
             margin: 15px 0;
             border-color: #ffe1bd;
@@ -263,20 +275,29 @@
         .inline-group select, .inline-group input {
             flex: 2;
         }
-        .extra-amount-row {
-            background: #fff3e6;
-            border-radius: 24px;
-            padding: 12px;
-            margin: 10px 0;
+        .extra-amount-inline {
             display: flex;
-            gap: 10px;
-            align-items: flex-end;
+            align-items: center;
+            gap: 8px;
+            background: #fff0e6;
+            padding: 4px 12px;
+            border-radius: 60px;
+        }
+        .extra-amount-inline input {
+            width: 90px;
+            padding: 8px 10px;
+            margin: 0;
+        }
+        .extra-amount-inline button {
+            padding: 6px 14px;
+            background: #2c7a4d;
         }
         @media (max-width: 550px) {
             body { padding: 12px; }
             th, td { font-size: 0.75rem; padding: 8px 4px; }
             .order-input-row { flex-direction: column; }
-            .extra-amount-row { flex-direction: column; }
+            .flex-between { flex-direction: column; align-items: stretch; }
+            .extra-amount-inline { justify-content: space-between; }
         }
     </style>
 </head>
@@ -330,7 +351,7 @@
         </div>
     </div>
 
-    <!-- تبويب 2: العملاء والطلبات مع إضافة مبلغ مباشر -->
+    <!-- تبويب 2: العملاء والطلبات -->
     <div id="tab2" class="tab-content">
         <div class="card">
             <div class="flex-between">
@@ -365,7 +386,6 @@
     let nextClientId = 1;
     let nextOrderId = 1;
 
-    // localStorage keys
     const STORAGE_MENU = "bofiya_menu_items";
     const STORAGE_CLIENTS = "bofiya_clients";
     const STORAGE_IDS = "bofiya_ids";
@@ -533,7 +553,7 @@
         saveAllData();
     }
 
-    // إضافة مبلغ مباشر (بدون اختيار من القائمة)
+    // إضافة مبلغ مباشر (مصغر وبجانب زر الحذف)
     function addExtraAmount(clientId, amount) {
         const client = clients.find(c => c.id === clientId);
         if(!client) return;
@@ -591,19 +611,18 @@
             clientDiv.style.border = "1px solid rgba(0,0,0,0.03)";
             clientDiv.innerHTML = `
                 <div class="flex-between" style="margin-bottom:12px;">
-                    <div>
-                        <h3 style="color:#b45f2b; display:inline-block;">👤 ${client.name}</h3>
-                        <span class="badge" style="background:#d97706; color:white; margin-right:12px;">💰 الإجمالي: ${totalSpent.toFixed(2)} ريال</span>
+                    <div class="flex-start">
+                        <h3 style="color:#b45f2b;">👤 ${client.name}</h3>
+                        <span class="badge" style="background:#d97706; color:white;">💰 الإجمالي: ${totalSpent.toFixed(2)} ريال</span>
                     </div>
-                    <button class="btn-danger" data-clientid="${client.id}" id="delClient_${client.id}">🗑 حذف العميل</button>
-                </div>
-                <!-- حقل إضافة مبلغ مباشر جديد -->
-                <div class="extra-amount-row">
-                    <div style="flex:2">
-                        <label>💰 إضافة مبلغ إضافي (ريال)</label>
-                        <input type="number" id="extraAmount_${client.id}" placeholder="مثال: 8" step="0.5" value="">
+                    <div class="flex-start">
+                        <!-- حقل إضافة مبلغ مصغر بجانب زر الحذف -->
+                        <div class="extra-amount-inline">
+                            <input type="number" id="extraAmount_${client.id}" placeholder="المبلغ" step="0.5" style="width:85px;">
+                            <button id="addExtraBtn_${client.id}" style="background:#2c7a4d; padding:6px 12px;">➕ إضافة مبلغ</button>
+                        </div>
+                        <button class="btn-danger btn-small" data-clientid="${client.id}" id="delClient_${client.id}">🗑 حذف العميل</button>
                     </div>
-                    <button id="addExtraBtn_${client.id}" style="background:#2c7a4d;">➕ إضافة مبلغ</button>
                 </div>
                 <!-- طلب عادي من القائمة -->
                 <div style="background:rgba(255,245,235,0.8); border-radius:28px; padding:12px; margin-bottom:14px;">
@@ -670,7 +689,6 @@
             if(client.orders.length === 0) {
                 tbodyOrders.innerHTML = '<tr><td colspan="4" style="text-align:center">لا توجد طلبات بعد</td></tr>';
             } else {
-                // عرض جميع الطلبات (الوجبات والمبالغ الإضافية)
                 client.orders.slice().sort((a,b)=> (a.rawDate || '').localeCompare(b.rawDate || '')).forEach(order => {
                     const row = tbodyOrders.insertRow();
                     let descText = '';
